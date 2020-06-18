@@ -1,6 +1,5 @@
 from django.shortcuts import render
-from rest_framework import generics
-from rest_framework import permissions
+from rest_framework import generics, permissions, authentication
 from django.contrib.auth.models import User
 
 from . import models
@@ -26,6 +25,7 @@ class BlurbListAPIView(generics.ListAPIView):
 
     serializer_class = serializers.BlurbSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
 
 class BlurbRetrieveAPIView(generics.RetrieveAPIView):
     def get_queryset(self):
@@ -44,10 +44,12 @@ class BlurbRetrieveAPIView(generics.RetrieveAPIView):
 
     serializer_class = serializers.BlurbSerializer
     permission_classes = (custom_permissions.IsBlurbConsumerOrSuperuser,permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
 
 class BlurbCreateAPIView(generics.CreateAPIView):
     serializer_class = serializers.BlurbSerializer
     permission_classes = (permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
 
 class BlurbEditAPIView(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
@@ -66,28 +68,34 @@ class BlurbEditAPIView(generics.RetrieveUpdateDestroyAPIView):
 
     serializer_class = serializers.BlurbEditSerializer
     permission_classes = (custom_permissions.IsBlurbConsumerOrSuperuser,permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
 
 class UserListAPIView(generics.ListAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (permissions.IsAdminUser,)
+    authentication_classes = (authentication.TokenAuthentication,)
     queryset = User.objects.all()
 
 class UserRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (custom_permissions.IsUserOrSuperuser,)
+    authentication_classes = (authentication.TokenAuthentication,)
     queryset = User.objects.all()
 
 class UserCreateAPIView(generics.CreateAPIView):
     serializer_class = serializers.UserSerializer
     permission_classes = (~permissions.IsAuthenticated,)
+    authentication_classes = (authentication.TokenAuthentication,)
     queryset = User.objects.all()
 
 class UserEditAPIView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = serializers.UserEditSerializer
     permission_classes = (custom_permissions.IsUserOrSuperuser,)
+    authentication_classes = (authentication.TokenAuthentication,)
     queryset = User.objects.all()
 
 class UserResetAPIView(generics.RetrieveUpdateAPIView):
     serializer_class = serializers.UserResetSerializer
     permission_classes = (custom_permissions.IsUserOrSuperuser,)
+    authentication_classes = (authentication.TokenAuthentication,)
     queryset = User.objects.all()
