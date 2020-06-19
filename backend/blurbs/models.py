@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 
+User._meta.get_field('email')._unique = True
+
 class Blurb(models.Model):
     title = models.CharField(max_length=100)
     source = models.CharField(max_length=100)
