@@ -11,8 +11,9 @@ export default new Vuex.Store({
   state: {
     // Get login token from locl storage OR initialize as null
     token: localStorage.getItem('token') || null,
-    user: localStorage.getItem('user') || null,
-    cookie: localStorage.getItem('cookie') || null
+    user: JSON.parse(localStorage.getItem('user')) || null,
+    cookie: localStorage.getItem('cookie') || null,
+    keywords: []
   },
   getters: {
     loggedIn(state) {
@@ -23,19 +24,19 @@ export default new Vuex.Store({
     retrieveToken(state, token) {
       state.token = token
     },
-    destroyToken(state, token) {
+    destroyToken(state) {
       state.token = null
     },
     storeUser(state, user) {
       state.user = user
     },
-    destroyUser(state, user) {
+    destroyUser(state) {
       state.user = null
     },
     storeCookie(state, cookie) {
       state.cookie = cookie
     },
-    destroyCookie(state, cookie) {
+    destroyCookie(state,) {
       state.cookie = null
     }
   },
