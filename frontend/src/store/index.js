@@ -143,6 +143,24 @@ export default new Vuex.Store({
           })
         })
       }
+    },
+    register(context, data) {
+      return new Promise((resolve, reject) => {
+        axios.post('http://127.0.0.1:8000/api/users/create/', {
+          first_name: data.firstname,
+          last_name: data.lastname,
+          email: data.email,
+          username: data.username,
+          password: data.password
+        })
+        .then(response => {
+          resolve(response)
+        })
+        .catch(error => {
+          console.log(error)
+          reject(error)
+        })
+      })
     }
   },
   modules: {

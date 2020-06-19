@@ -1,18 +1,18 @@
 <template>
   <div class="col-4">
-    <Login />
+    <LoginRegister />
     <Logout />
   </div>
 </template>
 
 <script>
-import Login from './Login'
+import LoginRegister from './LoginRegister'
 import Logout from './Logout'
 
 export default {
   name: 'Sidebar',
   components: {
-    Login,
+    LoginRegister,
     Logout
   },
 }
