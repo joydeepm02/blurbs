@@ -99,3 +99,9 @@ class UserResetAPIView(generics.RetrieveUpdateAPIView):
     permission_classes = (custom_permissions.IsUserOrSuperuser,)
     # authentication_classes = (authentication.TokenAuthentication,)
     queryset = User.objects.all()
+
+class UserIdAPIView(generics.ListAPIView):
+    serializer_class = serializers.UserSerializer
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)

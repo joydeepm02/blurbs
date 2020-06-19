@@ -13,5 +13,6 @@ urlpatterns = [
     path('users/edit/<pk>', views.UserEditAPIView.as_view()),
     path('users/reset/<pk>', views.UserResetAPIView.as_view()),
     path('users/create/', views.UserCreateAPIView.as_view()),
+    path('users/identify/', views.UserIdAPIView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
