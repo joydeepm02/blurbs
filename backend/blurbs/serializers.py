@@ -57,3 +57,8 @@ class UserResetSerializer(serializers.ModelSerializer):
         instance.set_password(validated_data['password'])
         instance.save()
         return instance
+
+class KeywordSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Keyword
+        fields = ['id', 'keyword', 'user']

@@ -13,7 +13,7 @@ export default new Vuex.Store({
     token: localStorage.getItem('token') || null,
     user: JSON.parse(localStorage.getItem('user')) || null,
     cookie: localStorage.getItem('cookie') || null,
-    keywords: []
+    keywords: JSON.parse(localStorage.getItem('keywords')) || null
   },
   getters: {
     loggedIn(state) {
@@ -38,7 +38,10 @@ export default new Vuex.Store({
     },
     destroyCookie(state,) {
       state.cookie = null
-    }
+    },
+    storeKeywords(state, keywords) {
+      state.keywords = keywords
+    },
   },
   actions: {
     retrieveToken(context, credentials) {
@@ -85,6 +88,34 @@ export default new Vuex.Store({
               context.commit('storeUser', user)
 
               resolve(identificationResponse)
+
+              return new Promise((resolve, reject) => {
+                // Get keywords for current user with Authentication Token
+                axios.get('http://127.0.0.1:8000/api/keywords/view/', {
+                  headers: {
+                    'Authorization': `Token ${this.state.token}`
+                  }
+                })
+                .then(keywordResponse => {
+                  const keywords = []
+                  for (const index in keywordResponse.data) {
+                    keywords.push(keywordResponse.data[index])
+                  }
+                  console.log(keywords)
+
+                  // Store keywords in local storage (stringified)
+                  localStorage.setItem('keywords', JSON.stringify(keywords))
+
+                  // Calls storeKeywords mutation
+                  context.commit('storeKeywords', keywords)
+
+                  resolve(keywordResponse)
+                })
+                .catch(keywordError => {
+                  console.log(keywordError)
+                  reject(keywordError)
+                })
+              })
             })
             .catch(identificationError => {
               console.log(identificationError)
@@ -110,35 +141,34 @@ export default new Vuex.Store({
           .then(response => {
             // Remove token from local storage
             localStorage.removeItem('token')
-            // Calls retrieveToken mutation
+            // Calls destroyToken mutation
             context.commit('destroyToken')
 
-            // Remove token from local storage
+            // Remove user from local storage
             localStorage.removeItem('user')
-            // Calls retrieveToken mutation
+            // Calls destroyUser mutation
             context.commit('destroyUser')
 
-            // Remove token from local storage
+            // Remove cookie from local storage
             localStorage.removeItem('cookie')
-            // Calls retrieveToken mutation
+            // Calls destroyCookie mutation
             context.commit('destroyCookie')
             resolve(response)
           })
           .catch(error => {
-            console.log("Still removing")
             // Remove token from local storage
             localStorage.removeItem('token')
-            // Calls retrieveToken mutation
+            // Calls destroyToken mutation
             context.commit('destroyToken')
 
-            // Remove token from local storage
+            // Remove user from local storage
             localStorage.removeItem('user')
-            // Calls retrieveToken mutation
+            // Calls destroyUser mutation
             context.commit('destroyUser')
 
-            // Remove token from local storage
+            // Remove cookie from local storage
             localStorage.removeItem('cookie')
-            // Calls retrieveToken mutation
+            // Calls destroyCookie mutation
             context.commit('destroyCookie')
             reject(error)
           })
@@ -156,6 +186,96 @@ export default new Vuex.Store({
         })
         .then(response => {
           resolve(response)
+        })
+        .catch(error => {
+          console.log(error)
+          reject(error)
+        })
+      })
+    },
+    addKeyword(context, data) {
+      return new Promise((resolve, reject) => {
+        axios.post('http://127.0.0.1:8000/api/keywords/create/', {
+          keyword: data.keyword,
+          user: this.state.user.id
+        },
+        {
+          headers: {
+            'Authorization': `Token ${this.state.token}`
+          }
+        })
+        .then(response => {
+        resolve(response)
+          // Retrieve keyword data to update frontend
+          return new Promise((resolve, reject) => {
+
+            axios.get('http://127.0.0.1:8000/api/keywords/view/', {
+              headers: {
+                'Authorization': `Token ${this.state.token}`
+              }
+            })
+            .then(keywordResponse => {
+              const keywords = []
+              for (const index in keywordResponse.data) {
+                keywords.push(keywordResponse.data[index])
+              }
+              console.log(keywords)
+
+              // Store keywords in local storage (stringified)
+              localStorage.setItem('keywords', JSON.stringify(keywords))
+
+              // Calls storeKeywords mutation
+              context.commit('storeKeywords', keywords)
+
+              resolve(keywordResponse)
+            })
+            .catch(keywordError => {
+              console.log(keywordError)
+              reject(keywordError)
+            })
+          })
+        })
+        .catch(error => {
+          console.log(error)
+          reject(error)
+        })
+      })
+    },
+    deleteKeyword(context, keyword) {
+      return new Promise((resolve, reject) => {
+        axios.delete('http://127.0.0.1:8000/api/keywords/delete/' + keyword.id, {
+          headers: {
+            'Authorization': `Token ${this.state.token}`
+          }
+        })
+        .then(response => {
+          resolve(response)
+            // Retrieve keyword data to update frontend
+            return new Promise((resolve, reject) => {
+            axios.get('http://127.0.0.1:8000/api/keywords/view/', {
+              headers: {
+                'Authorization': `Token ${this.state.token}`
+              }
+            })
+            .then(keywordResponse => {
+              const keywords = []
+              for (const index in keywordResponse.data) {
+                keywords.push(keywordResponse.data[index])
+              }
+
+              // Store keywords in local storage (stringified)
+              localStorage.setItem('keywords', JSON.stringify(keywords))
+
+              // Calls storeKeywords mutation
+              context.commit('storeKeywords', keywords)
+
+              resolve(keywordResponse)
+            })
+            .catch(keywordError => {
+              console.log(keywordError)
+              reject(keywordError)
+            })
+          })
         })
         .catch(error => {
           console.log(error)

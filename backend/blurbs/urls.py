@@ -14,5 +14,8 @@ urlpatterns = [
     path('users/reset/<pk>', views.UserResetAPIView.as_view()),
     path('users/create/', views.UserCreateAPIView.as_view()),
     path('users/identify/', views.UserIdAPIView.as_view()),
+    path('keywords/view/', views.KeywordListAPIView.as_view()),
+    path('keywords/create/', views.KeywordCreateAPIView.as_view()),
+    path('keywords/delete/<pk>', views.KeywordDestroyAPIView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

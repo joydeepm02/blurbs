@@ -1,5 +1,6 @@
-from django.shortcuts import render
-from rest_framework import generics, permissions, authentication
+from django.shortcuts import render, get_object_or_404
+from rest_framework import generics, permissions, authentication, status
+from rest_framework.response import Response
 from django.contrib.auth.models import User
 
 from . import models
@@ -105,3 +106,36 @@ class UserIdAPIView(generics.ListAPIView):
 
     def get_queryset(self):
         return User.objects.filter(id=self.request.user.id)
+
+class KeywordListAPIView(generics.ListAPIView):
+    def get_queryset(self):
+        # If authenticated user is a superuser, return all Keyword objects
+        if self.request.user.is_superuser:
+            queryset = models.Keyword.objects.all()
+            return queryset
+        # If authenticated user is not a superuser, return only Keywords for which they are the user
+        else:
+            queryset = models.Keyword.objects.filter(user=self.request.user)
+            return queryset
+
+    serializer_class = serializers.KeywordSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+    # authentication_classes = (authentication.TokenAuthentication,)
+
+class KeywordCreateAPIView(generics.CreateAPIView):
+    serializer_class = serializers.KeywordSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+class KeywordDestroyAPIView(generics.DestroyAPIView):
+    def get_queryset(self):
+        # If authenticated user is a superuser, return all Keyword objects
+        if self.request.user.is_superuser:
+            queryset = models.Keyword.objects.all()
+            return queryset
+        # If authenticated user is not a superuser, return only Keywords for which they are the user
+        else:
+            queryset = models.Keyword.objects.filter(user=self.request.user)
+            return queryset
+
+    serializer_class = serializers.KeywordSerializer
+    permission_classes = (permissions.IsAuthenticated,)
