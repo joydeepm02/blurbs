@@ -8,6 +8,12 @@
       <form>
         <input class="form-control" type="text" placeholder="Add a Keyword" v-model="newKeyword">
       </form>
+      <br>
+      <ul class="list-group">
+        <li v-for="(keyword, index) in keywords" v-bind:key="index" class="list-group-item">
+          {{ keyword }}
+        </li>
+      </ul>
     </div>
   </div>
 </template>
@@ -15,6 +21,8 @@
 <script>
 import About from './About'
 import Feed from './Feed'
+
+import { mapState } from 'vuex'
 
 export default {
   name: 'MainContent',
@@ -26,7 +34,10 @@ export default {
   computed: {
     loggedIn() {
       return this.$store.getters.loggedIn
-    }
+    },
+    ...mapState([
+      'keywords'
+    ])
   }
 }
 </script>
