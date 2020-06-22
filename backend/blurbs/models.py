@@ -7,6 +7,7 @@ class Blurb(models.Model):
     title = models.CharField(max_length=100)
     source = models.CharField(max_length=100)
     link = models.URLField()
+    image = models.URLField()
     created = models.DateTimeField(auto_now_add=True)
     consumer = models.ForeignKey(User, on_delete=models.CASCADE)
     favorited = models.BooleanField(default=False)

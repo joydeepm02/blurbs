@@ -13,7 +13,8 @@ export default new Vuex.Store({
     token: localStorage.getItem('token') || null,
     user: JSON.parse(localStorage.getItem('user')) || null,
     cookie: localStorage.getItem('cookie') || null,
-    keywords: JSON.parse(localStorage.getItem('keywords')) || null
+    keywords: JSON.parse(localStorage.getItem('keywords')) || null,
+    blurbs: [],
   },
   getters: {
     loggedIn(state) {
@@ -282,6 +283,9 @@ export default new Vuex.Store({
           reject(error)
         })
       })
+    },
+    getNewBlurb(context, keyword) {
+      // TODO
     }
   },
   modules: {

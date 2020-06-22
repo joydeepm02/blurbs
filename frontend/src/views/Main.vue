@@ -2,8 +2,8 @@
   <div class="main">
     <Navbar />
     <div class="row">
-        <Sidebar />
-        <MainContent />
+      <Sidebar />
+      <MainContent />
     </div>
   </div>
 </template>
