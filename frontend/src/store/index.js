@@ -24,7 +24,15 @@ export default new Vuex.Store({
   getters: {
     loggedIn(state) {
       return state.token != null && state.user != null
-    }
+    },
+    existsKeywords(state) {
+      return state.keywords.length != 0
+    },
+    existsBlurbs(state) {
+      console.log(state.blurbs.length)
+      console.log(state.blurbs.length != 0)
+      return state.blurbs.length != 0
+    },
   },
   mutations: {
     retrieveToken(state, token) {
