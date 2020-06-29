@@ -13,7 +13,7 @@ class BlurbListAPIView(generics.ListAPIView):
     def get_queryset(self):
         # If authenticated user is a superuser, return all Blurb objects
         if self.request.user.is_superuser:
-            queryset = models.Blurb.objects.all()
+            queryset = models.Blurb.objects.filter()
             return queryset
         # If authenticated user is not a superuser, return only Blurbs for which they are the consumer
         else:

@@ -11,6 +11,7 @@ class Blurb(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     consumer = models.ForeignKey(User, on_delete=models.CASCADE)
     favorited = models.BooleanField(default=False)
+    hidden = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created']

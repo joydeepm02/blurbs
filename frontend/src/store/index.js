@@ -29,9 +29,12 @@ export default new Vuex.Store({
       return state.keywords.length != 0
     },
     existsBlurbs(state) {
-      console.log(state.blurbs.length)
-      console.log(state.blurbs.length != 0)
-      return state.blurbs.length != 0
+      for(var blurbIndex in state.blurbs) {
+        if(!state.blurbs[blurbIndex].hidden) {
+          return true;
+        }
+      }
+      return false;
     },
   },
   mutations: {
@@ -145,6 +148,7 @@ export default new Vuex.Store({
                     })
                     .then(blurbResponse => {
                       var userBlurbs = blurbResponse.data
+
                       // Store blurbs in local storage (stringified)
                       localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
 
@@ -401,6 +405,8 @@ export default new Vuex.Store({
                   })
                   .then(blurbResponse => {
                     var userBlurbs = blurbResponse.data
+                    console.log(userBlurbs)
+
                     // Store blurbs in local storage (stringified)
                     localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
 
@@ -424,6 +430,47 @@ export default new Vuex.Store({
         })
       })
       }
+    },
+    deleteBlurb(context, blurb) {
+      context.commit('resetMessages')
+      return new Promise((resolve, reject) => {
+        axios.put("http://127.0.0.1:8000/api/blurbs/edit/" + blurb.id, {
+          hidden: true
+        },
+        {
+          headers: {
+            'Authorization': `Token ${this.state.token}`
+          }
+        })
+        .then(blurbResponse => {
+          resolve(blurbResponse)
+
+          return new Promise((resolve, reject) => {
+            axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
+              headers: {
+                'Authorization': `Token ${this.state.token}`
+              }
+            })
+            .then(blurbResponse => {
+              var userBlurbs = blurbResponse.data
+
+              // Store blurbs in local storage (stringified)
+              localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
+
+              // Calls storeBlurbs mutation
+              context.commit('storeBlurbs', userBlurbs)
+
+              resolve(blurbResponse)
+            })
+            .catch(blurbError => {
+              reject(blurbError)
+            })
+          })
+        })
+        .catch(blurbError => {
+          reject(blurbError)
+        })
+      })
     }
   },
   modules: {
