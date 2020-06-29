@@ -4,10 +4,10 @@ from django.contrib.auth.models import User
 # Create your models here.
 
 class Blurb(models.Model):
-    title = models.CharField(max_length=100)
-    source = models.CharField(max_length=100)
-    link = models.URLField()
-    image = models.URLField()
+    title = models.CharField(max_length=250)
+    source = models.CharField(max_length=250)
+    link = models.URLField(max_length=750)
+    image = models.URLField(max_length=750)
     created = models.DateTimeField(auto_now_add=True)
     consumer = models.ForeignKey(User, on_delete=models.CASCADE)
     favorited = models.BooleanField(default=False)

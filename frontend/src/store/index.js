@@ -14,7 +14,7 @@ export default new Vuex.Store({
     user: JSON.parse(localStorage.getItem('user')) || null,
     cookie: localStorage.getItem('cookie') || null,
     keywords: JSON.parse(localStorage.getItem('keywords')) || null,
-    blurbs: [],
+    blurbs: JSON.parse(localStorage.getItem('blurbs')) || null,
   },
   getters: {
     loggedIn(state) {
@@ -37,11 +37,14 @@ export default new Vuex.Store({
     storeCookie(state, cookie) {
       state.cookie = cookie
     },
-    destroyCookie(state,) {
+    destroyCookie(state) {
       state.cookie = null
     },
     storeKeywords(state, keywords) {
       state.keywords = keywords
+    },
+    storeBlurbs(state, blurbs) {
+      state.blurbs = blurbs
     },
   },
   actions: {
@@ -68,7 +71,7 @@ export default new Vuex.Store({
           // New promise to identify user
           return new Promise((resolve, reject) => {
             // Get current user with Authentication Token
-            
+
             axios.get('http://127.0.0.1:8000/api/users/identify/', {
               headers: {
                 'Authorization': `Token ${this.state.token}`
@@ -102,7 +105,6 @@ export default new Vuex.Store({
                   for (const index in keywordResponse.data) {
                     keywords.push(keywordResponse.data[index])
                   }
-                  console.log(keywords)
 
                   // Store keywords in local storage (stringified)
                   localStorage.setItem('keywords', JSON.stringify(keywords))
@@ -111,6 +113,27 @@ export default new Vuex.Store({
                   context.commit('storeKeywords', keywords)
 
                   resolve(keywordResponse)
+
+                  return new Promise((resolve, reject) => {
+                    axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
+                      headers: {
+                        'Authorization': `Token ${this.state.token}`
+                      }
+                    })
+                    .then(blurbResponse => {
+                      var userBlurbs = blurbResponse.data
+                      // Store blurbs in local storage (stringified)
+                      localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
+
+                      // Calls storeBlurbs mutation
+                      context.commit('storeBlurbs', userBlurbs)
+
+                      resolve(blurbResponse)
+                    })
+                    .catch(blurbError => {
+                      reject(blurbError)
+                    })
+                  })
                 })
                 .catch(keywordError => {
                   console.log(keywordError)
@@ -220,7 +243,6 @@ export default new Vuex.Store({
               for (const index in keywordResponse.data) {
                 keywords.push(keywordResponse.data[index])
               }
-              console.log(keywords)
 
               // Store keywords in local storage (stringified)
               localStorage.setItem('keywords', JSON.stringify(keywords))
@@ -286,6 +308,80 @@ export default new Vuex.Store({
     },
     getNewBlurb(context, keyword) {
       // TODO
+      return new Promise((resolve, reject) => {
+        axios.get("https://newsapi.org/v2/top-headlines?q=trump&apiKey=59718915a52e49e195790e93dd55c3d2")
+        .then(newsResponse => {
+            var relevantArticles = newsResponse.data.articles
+            var articleToAdd = null
+            for(var articleIndex in relevantArticles) {
+              var valid = true
+              var article = relevantArticles[articleIndex]
+              for(var blurbIndex in this.state.blurbs) {
+                var blurb = this.state.blurbs[blurbIndex]
+                if(blurb.link === article.url) {
+                  valid = false
+                  break
+                }
+              }
+              if(valid) {
+                articleToAdd = article
+                break
+              }
+            }
+
+            resolve(newsResponse)
+
+            // Send the valid article to our backend to instantiate a Blurb object
+            return new Promise((resolve, reject) => {
+              axios.post('http://127.0.0.1:8000/api/blurbs/create/', {
+                title: articleToAdd.title,
+                source: articleToAdd.source.name,
+                link: articleToAdd.url,
+                image: articleToAdd.urlToImage,
+                consumer: this.state.user.id
+              },
+              {
+                headers: {
+                  'Authorization': `Token ${this.state.token}`
+                }
+              })
+              .then(blurbCreateResponse => {
+                resolve(blurbCreateResponse)
+
+                return new Promise((resolve, reject) => {
+                  axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
+                    headers: {
+                      'Authorization': `Token ${this.state.token}`
+                    }
+                  })
+                  .then(blurbResponse => {
+                    var userBlurbs = blurbResponse.data
+                    console.log(userBlurbs)
+                    // Store blurbs in local storage (stringified)
+                    localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
+
+                    // Calls storeBlurbs mutation
+                    context.commit('storeBlurbs', userBlurbs)
+
+                    console.log("Updated store blurbs")
+                    console.log(this.state.blurbs)
+
+                    resolve(blurbResponse)
+                  })
+                  .catch(blurbError => {
+                    reject(blurbError)
+                  })
+                })
+              })
+              .catch(blurbCreateError => {
+                reject(blurbCreateError)
+              })
+            })
+        })
+        .catch(newsError => {
+          reject(newsError)
+        })
+      })
     }
   },
   modules: {

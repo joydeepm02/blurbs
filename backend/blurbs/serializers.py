@@ -6,13 +6,13 @@ from . import models
 class BlurbSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Blurb
-        fields = ['id', 'title', 'source', 'link', 'created', 'consumer', 'favorited']
+        fields = ['id', 'title', 'source', 'link', 'image', 'created', 'consumer', 'favorited']
 
 class BlurbEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Blurb
         fields = ['favorited']
-        
+
     def update(self, instance, validated_data):
         instance.favorited = validated_data.get('favorited', instance.favorited)
         instance.save()
