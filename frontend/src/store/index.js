@@ -15,6 +15,11 @@ export default new Vuex.Store({
     cookie: localStorage.getItem('cookie') || null,
     keywords: JSON.parse(localStorage.getItem('keywords')) || null,
     blurbs: JSON.parse(localStorage.getItem('blurbs')) || null,
+    // Success and error messages
+    success: false,
+    success_message: null,
+    error: false,
+    error_message: null
   },
   getters: {
     loggedIn(state) {
@@ -46,15 +51,25 @@ export default new Vuex.Store({
     storeBlurbs(state, blurbs) {
       state.blurbs = blurbs
     },
+    resetMessages(state) {
+      state.success = false
+      state.success_message = null
+      state.error = false;
+      state.error_message = null;
+    }
   },
   actions: {
     retrieveToken(context, credentials) {
+      context.commit('resetMessages')
       return new Promise((resolve, reject) => {
         axios.post('http://127.0.0.1:8000/auth/', {
           username: credentials.username,
           password: credentials.password
         })
         .then(response => {
+          this.state.error = false
+          this.state.error_message = null
+
           const token = response.data.token
           // Store token in local storage
           localStorage.setItem('token', token)
@@ -136,27 +151,26 @@ export default new Vuex.Store({
                   })
                 })
                 .catch(keywordError => {
-                  console.log(keywordError)
                   reject(keywordError)
                 })
               })
             })
             .catch(identificationError => {
-              console.log(identificationError)
               reject(identificationError)
             })
           })
         })
         .catch(error => {
-          console.log(error)
+          this.state.error = true
+          this.state.error_message = "Your username or password was incorrect. Try again!"
           reject(error)
         })
       })
     },
     destroyToken(context) {
+      context.commit('resetMessages')
       if (context.getters.loggedIn) {
         return new Promise((resolve, reject) => {
-          // console.log(`${this.state.cookie}`);
           axios.get('http://127.0.0.1:8000/api/api-auth/logout/', {
             headers: {
               'X-CSRFToken': `${this.state.cookie}`
@@ -200,6 +214,7 @@ export default new Vuex.Store({
       }
     },
     register(context, data) {
+      context.commit('resetMessages')
       return new Promise((resolve, reject) => {
         axios.post('http://127.0.0.1:8000/api/users/create/', {
           first_name: data.firstname,
@@ -209,16 +224,30 @@ export default new Vuex.Store({
           password: data.password
         })
         .then(response => {
+          this.state.success = true
+          this.state.success_message = "Thank you for registering with Blurbs! You may now log in."
           resolve(response)
         })
         .catch(error => {
-          console.log(error)
+          this.state.error = true
+          this.state.error_message = "The email or username provided may already be in use. Try again!"
           reject(error)
         })
       })
     },
     addKeyword(context, data) {
-      return new Promise((resolve, reject) => {
+      context.commit('resetMessages')
+      var conflict = false
+      for(var keywordIndex in this.state.keywords) {
+        if(data.keyword.toLowerCase() === this.state.keywords[keywordIndex].keyword.toLowerCase()) {
+          this.state.error = true
+          this.state.error_message = "A keyword with this term has already been created."
+          conflict = true
+        }
+      }
+      if(!conflict) {
+        context.commit('resetMessages')
+        return new Promise((resolve, reject) => {
         axios.post('http://127.0.0.1:8000/api/keywords/create/', {
           keyword: data.keyword,
           user: this.state.user.id
@@ -253,18 +282,18 @@ export default new Vuex.Store({
               resolve(keywordResponse)
             })
             .catch(keywordError => {
-              console.log(keywordError)
               reject(keywordError)
             })
           })
         })
         .catch(error => {
-          console.log(error)
           reject(error)
         })
       })
+      }
     },
     deleteKeyword(context, keyword) {
+      context.commit('resetMessages')
       return new Promise((resolve, reject) => {
         axios.delete('http://127.0.0.1:8000/api/keywords/delete/' + keyword.id, {
           headers: {
@@ -295,21 +324,29 @@ export default new Vuex.Store({
               resolve(keywordResponse)
             })
             .catch(keywordError => {
-              console.log(keywordError)
               reject(keywordError)
             })
           })
         })
         .catch(error => {
-          console.log(error)
           reject(error)
         })
       })
     },
     getNewBlurb(context, keyword) {
-      // TODO
-      return new Promise((resolve, reject) => {
-        axios.get("https://newsapi.org/v2/top-headlines?q=trump&apiKey=59718915a52e49e195790e93dd55c3d2")
+      context.commit('resetMessages')
+      var numberOfKeywords = Object.keys(this.state.keywords).length
+      if(numberOfKeywords == 0) {
+        this.state.error = true
+        this.state.error_message = "Please provide search keywords to get more content."
+      }
+      else {
+        context.commit('resetMessages')
+        // Choose keyword at random
+        var keywordIndex = Math.floor((Math.random()*numberOfKeywords))
+        var searchFor = this.state.keywords[keywordIndex].keyword
+        return new Promise((resolve, reject) => {
+        axios.get("https://newsapi.org/v2/everything?q=" + searchFor + "&apiKey=59718915a52e49e195790e93dd55c3d2") // top-headlines
         .then(newsResponse => {
             var relevantArticles = newsResponse.data.articles
             var articleToAdd = null
@@ -356,15 +393,11 @@ export default new Vuex.Store({
                   })
                   .then(blurbResponse => {
                     var userBlurbs = blurbResponse.data
-                    console.log(userBlurbs)
                     // Store blurbs in local storage (stringified)
                     localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
 
                     // Calls storeBlurbs mutation
                     context.commit('storeBlurbs', userBlurbs)
-
-                    console.log("Updated store blurbs")
-                    console.log(this.state.blurbs)
 
                     resolve(blurbResponse)
                   })
@@ -382,6 +415,7 @@ export default new Vuex.Store({
           reject(newsError)
         })
       })
+      }
     }
   },
   modules: {

@@ -26,4 +26,3 @@ class Keyword(models.Model):
         return self.keyword
 
 User._meta.get_field('email')._unique = True
-Keyword._meta.get_field('keyword')._unique = True
