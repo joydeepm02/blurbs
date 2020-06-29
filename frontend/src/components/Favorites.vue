@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div v-if="existsFeedBlurbs">
+    <div v-if="existsFavoriteBlurbs">
       <div class="row" v-for="i in Math.ceil(blurbs.length / 2)" v-bind:key="i">
-        <div v-if="!blurb.hidden && !blurb.favorited" v-for="(blurb, index) in blurbs.slice((i - 1) * 2, i * 2)" v-bind:key="index" class="card m-3 shadow border border-primary">
+        <div v-if="!blurb.hidden && blurb.favorited" v-for="(blurb, index) in blurbs.slice((i - 1) * 2, i * 2)" v-bind:key="index" class="card m-3 shadow border border-primary">
           <div class="pickgradient">
             <img :src="`${blurb.image}`" class="card-img-top" alt="...">
           </div>
@@ -12,7 +12,7 @@
           <div class="card-body">
             <h5 class="card-title">{{ blurb.title }}</h5>
             <a target="_blank" :href="`${blurb.link}`" class="btn btn-outline-secondary mr-2" role="button">View</a>
-            <button @click="favoriteBlurb(blurb.id)" class="btn btn-outline-primary mr-2" role="button">Favorite</button>
+            <button @click="unfavoriteBlurb(blurb.id)" class="btn btn-outline-primary mr-2" role="button">Remove From Favorites</button>
             <button @click="deleteBlurb(blurb.id)" class="btn btn-outline-danger mr-2" role="button">Delete</button>
           </div>
         </div>
@@ -26,15 +26,15 @@
 import { mapState } from 'vuex'
 
 export default {
-  name: 'LiveFeed',
+  name: 'Favorites',
   methods: {
     deleteBlurb(blurbId) {
       this.$store.dispatch('deleteBlurb', {
         id: blurbId
       })
     },
-    favoriteBlurb(blurbId) {
-      this.$store.dispatch('favoriteBlurb', {
+    unfavoriteBlurb(blurbId) {
+      this.$store.dispatch('unfavoriteBlurb', {
         id: blurbId
       })
     },
@@ -43,8 +43,8 @@ export default {
     ...mapState([
       'blurbs'
     ]),
-    existsFeedBlurbs() {
-      return this.$store.getters.existsFeedBlurbs
+    existsFavoriteBlurbs() {
+      return this.$store.getters.existsFavoriteBlurbs
     },
   },
 }

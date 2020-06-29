@@ -28,9 +28,17 @@ export default new Vuex.Store({
     existsKeywords(state) {
       return state.keywords.length != 0
     },
-    existsBlurbs(state) {
+    existsFeedBlurbs(state) {
       for(var blurbIndex in state.blurbs) {
-        if(!state.blurbs[blurbIndex].hidden) {
+        if(!state.blurbs[blurbIndex].hidden && !state.blurbs[blurbIndex].favorited) {
+          return true;
+        }
+      }
+      return false;
+    },
+    existsFavoriteBlurbs(state) {
+      for(var blurbIndex in state.blurbs) {
+        if(!state.blurbs[blurbIndex].hidden && state.blurbs[blurbIndex].favorited) {
           return true;
         }
       }
@@ -443,6 +451,93 @@ export default new Vuex.Store({
           }
         })
         .then(blurbResponse => {
+          resolve(blurbResponse)
+
+          return new Promise((resolve, reject) => {
+            axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
+              headers: {
+                'Authorization': `Token ${this.state.token}`
+              }
+            })
+            .then(blurbResponse => {
+              var userBlurbs = blurbResponse.data
+
+              // Store blurbs in local storage (stringified)
+              localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
+
+              // Calls storeBlurbs mutation
+              context.commit('storeBlurbs', userBlurbs)
+
+              resolve(blurbResponse)
+            })
+            .catch(blurbError => {
+              reject(blurbError)
+            })
+          })
+        })
+        .catch(blurbError => {
+          reject(blurbError)
+        })
+      })
+    },
+    favoriteBlurb(context, blurb) {
+      context.commit('resetMessages')
+      console.log(blurb)
+      return new Promise((resolve, reject) => {
+        axios.put("http://127.0.0.1:8000/api/blurbs/edit/" + blurb.id, {
+          favorited: true
+        },
+        {
+          headers: {
+            'Authorization': `Token ${this.state.token}`
+          }
+        })
+        .then(blurbResponse => {
+          this.state.success = true
+          this.state.success_message = "Blurb moved to Favorites."
+          resolve(blurbResponse)
+
+          return new Promise((resolve, reject) => {
+            axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
+              headers: {
+                'Authorization': `Token ${this.state.token}`
+              }
+            })
+            .then(blurbResponse => {
+              var userBlurbs = blurbResponse.data
+
+              // Store blurbs in local storage (stringified)
+              localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
+
+              // Calls storeBlurbs mutation
+              context.commit('storeBlurbs', userBlurbs)
+
+              resolve(blurbResponse)
+            })
+            .catch(blurbError => {
+              reject(blurbError)
+            })
+          })
+        })
+        .catch(blurbError => {
+          reject(blurbError)
+        })
+      })
+    },
+    unfavoriteBlurb(context, blurb) {
+      context.commit('resetMessages')
+      return new Promise((resolve, reject) => {
+        axios.put("http://127.0.0.1:8000/api/blurbs/edit/" + blurb.id, {
+          favorited: false
+        },
+        {
+          headers: {
+            'Authorization': `Token ${this.state.token}`
+          }
+        })
+        .then(blurbResponse => {
+          this.state.success = true
+          this.state.success_message = "Blurb removed from Favorites."
           resolve(blurbResponse)
 
           return new Promise((resolve, reject) => {
