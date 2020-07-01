@@ -353,7 +353,7 @@ export default new Vuex.Store({
         })
       })
     },
-    getNewBlurb(context, keyword) {
+    getNewBlurb(context) {
       context.commit('resetMessages')
       var numberOfKeywords = Object.keys(this.state.keywords).length
       if(numberOfKeywords == 0) {
@@ -413,7 +413,6 @@ export default new Vuex.Store({
                   })
                   .then(blurbResponse => {
                     var userBlurbs = blurbResponse.data
-                    console.log(userBlurbs)
 
                     // Store blurbs in local storage (stringified)
                     localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
@@ -482,7 +481,6 @@ export default new Vuex.Store({
     },
     favoriteBlurb(context, blurb) {
       context.commit('resetMessages')
-      console.log(blurb)
       return new Promise((resolve, reject) => {
         axios.put("http://127.0.0.1:8000/api/blurbs/edit/" + blurb.id, {
           favorited: true
