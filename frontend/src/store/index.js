@@ -366,9 +366,12 @@ export default new Vuex.Store({
         var keywordIndex = Math.floor((Math.random()*numberOfKeywords))
         var searchFor = this.state.keywords[keywordIndex].keyword
         return new Promise((resolve, reject) => {
-        axios.get("https://newsapi.org/v2/everything?q=" + searchFor + "&apiKey=59718915a52e49e195790e93dd55c3d2") // top-headlines
+        // axios.get("https://gnews.io/api/v3/search?q=" + searchFor + "&token=431b03c3c52e1280ac42133abee75988")
+        axios.get("https://newsapi.org/v2/top-headlines?q=" + searchFor + "&apiKey=59718915a52e49e195790e93dd55c3d2") // top-headlines
         .then(newsResponse => {
             var relevantArticles = newsResponse.data.articles
+            console.log("Relevant articles: ")
+            console.log(newsResponse)
             var articleToAdd = null
             for(var articleIndex in relevantArticles) {
               var valid = true
@@ -394,7 +397,7 @@ export default new Vuex.Store({
                 title: articleToAdd.title,
                 source: articleToAdd.source.name,
                 link: articleToAdd.url,
-                image: articleToAdd.urlToImage,
+                image: articleToAdd.urlToImage, // articleToAdd.image
                 consumer: this.state.user.id
               },
               {
@@ -433,6 +436,8 @@ export default new Vuex.Store({
             })
         })
         .catch(newsError => {
+          this.state.error = true
+          this.state.error_message = "We're having trouble accessing NewsAPI. We apologize for the inconvenience."
           reject(newsError)
         })
       })
