@@ -365,82 +365,46 @@ export default new Vuex.Store({
         // Choose keyword at random
         var keywordIndex = Math.floor((Math.random()*numberOfKeywords))
         var searchFor = this.state.keywords[keywordIndex].keyword
+
         return new Promise((resolve, reject) => {
-        // axios.get("https://gnews.io/api/v3/search?q=" + searchFor + "&token=431b03c3c52e1280ac42133abee75988")
-        axios.get("https://newsapi.org/v2/top-headlines?q=" + searchFor + "&apiKey=59718915a52e49e195790e93dd55c3d2") // top-headlines
-        .then(newsResponse => {
-            var relevantArticles = newsResponse.data.articles
-            console.log("Relevant articles: ")
-            console.log(newsResponse)
-            var articleToAdd = null
-            for(var articleIndex in relevantArticles) {
-              var valid = true
-              var article = relevantArticles[articleIndex]
-              for(var blurbIndex in this.state.blurbs) {
-                var blurb = this.state.blurbs[blurbIndex]
-                if(blurb.link === article.url) {
-                  valid = false
-                  break
-                }
-              }
-              if(valid) {
-                articleToAdd = article
-                break
-              }
+          axios.post('http://127.0.0.1:8000/api/blurbs/create/', {
+            keyword: searchFor,
+            user: this.state.user.id
+          },
+          {
+            headers: {
+              'Authorization': `Token ${this.state.token}`
             }
+          })
+          .then(createResponse => {
+            resolve(createResponse)
 
-            resolve(newsResponse)
-
-            // Send the valid article to our backend to instantiate a Blurb object
             return new Promise((resolve, reject) => {
-              axios.post('http://127.0.0.1:8000/api/blurbs/create/', {
-                title: articleToAdd.title,
-                source: articleToAdd.source.name,
-                link: articleToAdd.url,
-                image: articleToAdd.urlToImage, // articleToAdd.image
-                consumer: this.state.user.id
-              },
-              {
+              axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
                 headers: {
                   'Authorization': `Token ${this.state.token}`
                 }
               })
-              .then(blurbCreateResponse => {
-                resolve(blurbCreateResponse)
+              .then(blurbResponse => {
+                var userBlurbs = blurbResponse.data
 
-                return new Promise((resolve, reject) => {
-                  axios.get("http://127.0.0.1:8000/api/blurbs/view/", {
-                    headers: {
-                      'Authorization': `Token ${this.state.token}`
-                    }
-                  })
-                  .then(blurbResponse => {
-                    var userBlurbs = blurbResponse.data
+                // Store blurbs in local storage (stringified)
+                localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
 
-                    // Store blurbs in local storage (stringified)
-                    localStorage.setItem('blurbs', JSON.stringify(userBlurbs))
+                // Calls storeBlurbs mutation
+                context.commit('storeBlurbs', userBlurbs)
 
-                    // Calls storeBlurbs mutation
-                    context.commit('storeBlurbs', userBlurbs)
-
-                    resolve(blurbResponse)
-                  })
-                  .catch(blurbError => {
-                    reject(blurbError)
-                  })
-                })
+                resolve(blurbResponse)
               })
-              .catch(blurbCreateError => {
-                reject(blurbCreateError)
+              .catch(blurbError => {
+                reject(blurbError)
               })
             })
+          })
+          .catch(createError => {
+            reject(createError)
+          })
         })
-        .catch(newsError => {
-          this.state.error = true
-          this.state.error_message = "We're having trouble accessing NewsAPI. We apologize for the inconvenience."
-          reject(newsError)
-        })
-      })
       }
     },
     deleteBlurb(context, blurb) {

@@ -2,11 +2,42 @@ from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
 from . import models
+import requests
 
 class BlurbSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Blurb
         fields = ['id', 'title', 'source', 'link', 'image', 'created', 'consumer', 'favorited', 'hidden']
+
+class BlurbCreateSerializer(serializers.Serializer):
+    keyword = serializers.CharField(max_length=100, required=False, write_only=True)
+    user = serializers.IntegerField(required=False, write_only=True)
+
+    def create(self, validated_data):
+        print(validated_data)
+        r = requests.get("https://newsapi.org/v2/everything?q=" + validated_data.get('keyword').replace(' ', '%20') + "&apiKey=59718915a52e49e195790e93dd55c3d2")
+        if r.json()["totalResults"] > 0:
+            latest_article = None
+            found = False
+            for article in r.json()["articles"]:
+                if not models.Blurb.objects.all().filter(link=article["url"]).exists():
+                    latest_article = article
+                    found = True
+                    break
+            if not found:
+                return None
+            blurb = models.Blurb()
+            blurb.title = latest_article["title"]
+            blurb.source = latest_article["source"]["name"]
+            blurb.link = latest_article["url"]
+            blurb.image = latest_article["urlToImage"]
+            blurb.consumer = models.getUserFromId(validated_data.get('user'))
+            blurb.favorited = False
+            blurb.hidden = False
+            blurb.save()
+            return blurb
+        else:
+            return None
 
 class BlurbEditSerializer(serializers.ModelSerializer):
     class Meta:

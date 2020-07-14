@@ -48,7 +48,7 @@ class BlurbRetrieveAPIView(generics.RetrieveAPIView):
     # authentication_classes = (authentication.TokenAuthentication,)
 
 class BlurbCreateAPIView(generics.CreateAPIView):
-    serializer_class = serializers.BlurbSerializer
+    serializer_class = serializers.BlurbCreateSerializer
     permission_classes = (permissions.IsAuthenticated,)
     # authentication_classes = (authentication.TokenAuthentication,)
 

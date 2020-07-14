@@ -26,4 +26,7 @@ class Keyword(models.Model):
     def __str__(self):
         return self.keyword
 
+def getUserFromId(id):
+    return User.objects.all().get(id=id)
+
 User._meta.get_field('email')._unique = True
