@@ -71,7 +71,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserEditSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'password']
 
     def update(self, instance, validated_data):
         instance.email = validated_data.get('email', instance.email)
