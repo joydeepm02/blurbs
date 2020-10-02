@@ -1,0 +1,6 @@
+# Python Virtual Environment
+env/
+
+# Hidden files
+*.pyc
+*.un~
